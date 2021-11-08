@@ -3,11 +3,8 @@ import time
 import json
 import random
 import urllib
-import http.cookiejar
-import pandas as pd
 import requests as rq
 from bs4 import BeautifulSoup
-from pyasn1.compat.octets import null
 
 TRY = ['福州', '厦门', '上海']
 
