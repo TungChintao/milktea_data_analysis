@@ -3,20 +3,11 @@ import time
 import json
 import random
 import urllib
+import http.cookiejar
 import requests as rq
 from bs4 import BeautifulSoup
-
-TRY = ['福州', '厦门', '上海']
-
-ALLCITIES = ['北京', '上海', '广州', '天津', '重庆',
-             '深圳', '石家庄', '太原', '呼和浩特', '沈阳',
-             '长春', '哈尔滨', '南京', '杭州', '合肥', '福州', '厦门',
-             '南昌', '济南', '郑州', '武汉', '长沙','南宁', '海口','成都', '贵阳', '昆明', '拉萨',
-             '西安','兰州', '西宁', '银川', '乌鲁木齐', '苏州', '三亚']
-
-KEYWORD = '奶茶'
-PATH = './data/'
-MAX_PAGE_INDEX = 1
+from pyasn1.compat.octets import null
+from spider.database_execute import DataManager
 
 proxypool_url = 'http://127.0.0.1:5555/random'
 
@@ -38,6 +29,16 @@ user_agents = [
     'Mozilla/5.0 (Windows NT 5.1) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 SE 2.X MetaSr 1.0',
     'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SV1; QQDownload 732; .NET4.0C; .NET4.0E; SE 2.X MetaSr 1.0) ',
 ]
+
+ALLCITIES = ['北京', '上海', '广州', '天津', '重庆',
+             '深圳', '石家庄', '太原', '呼和浩特', '沈阳',
+             '长春', '哈尔滨', '南京', '杭州', '合肥', '福州', '厦门',
+             '南昌', '济南', '郑州', '武汉', '长沙','南宁', '海口','成都', '贵阳', '昆明', '拉萨',
+             '西安','兰州', '西宁', '银川', '乌鲁木齐', '苏州', '三亚']
+
+KEYWORD = '奶茶'
+PATH = './data/'
+MAX_PAGE_INDEX = 1
 
 
 class MtSpider:
@@ -98,6 +99,7 @@ class MtSpider:
         """Called during initializing"""
 
         time.sleep(2)
+
         response = rq.get('http://www.meituan.com/changecity', headers=self.headers)
         soup = BeautifulSoup(response.text, 'lxml')
         cities = soup.find_all('a', {'class': 'link city'})
@@ -126,7 +128,7 @@ class MtSpider:
         #     cookies.append(i.name + '=' + i.value)
         # return ';'.join(cookies)
         cookies = [
-           # some cookies from cookie pool
+           # some cookies from cookies pool
         ]
         return random.choice(cookies)
 
@@ -170,7 +172,7 @@ class MtSpider:
         # print(data['data']['totalCount'], MAX_PAGE_INDEX)
         return data['data']['searchResult'], max_page
 
-    def parse_data(self, data):
+    def parse_data(self, data, dbManager):
         '''Parse data of one page'''
 
         for i in range(len(data)):
@@ -184,6 +186,8 @@ class MtSpider:
                 temp_shop[key] = data[i][key]
             print(temp_shop)
 
+            dbManager.trans_to_shopdata(temp_shop)
+
             names = ['title', 'price', 'value']
 
             goods = data[i]['deals']
@@ -194,10 +198,12 @@ class MtSpider:
                 for key in names:
                     good[key] = goods[j][key]
                 print(good)
+                dbManager.trans_to_gooddata(good)
 
 
 def main():
-    for city in TRY:
+    dbManager = DataManager('milktea_data')
+    for city in ALLCITIES:
         spider = MtSpider(city, KEYWORD)
         spider.change_cookie()
         page = 0
@@ -206,7 +212,7 @@ def main():
             try:
                 data, max_page = spider.get_json(page)
                 # print(data)
-                spider.parse_data(data)
+                spider.parse_data(data, dbManager)
                 print('>>> Page No.%d finished...' % (page + 1))
             except Exception as e:
                 print('Spider Error: ', e)
@@ -216,6 +222,8 @@ def main():
             page += 1
             spider.change_parm()
             time.sleep(5)
+            # trans_to_mysql(data, 'milktea_data')
+    dbManager.close_db()
 
 
 if __name__ == '__main__':
