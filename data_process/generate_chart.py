@@ -5,7 +5,7 @@ import pyecharts.options as opts
 import pyecharts.globals as glbs
 
 
-keywords = pd.read_csv('keywords2.csv')
+keywords = pd.read_csv('keywords3.csv')
 
 
 def render(chart, temp=True, show=False, changeHost=False):
@@ -30,17 +30,18 @@ def render(chart, temp=True, show=False, changeHost=False):
 
 
 def generate_wordcloud():
-    drop_list = ['1000cc', '小料', 'WOW', '中']
+    drop_list = []
 
     counts = keywords.loc[keywords.keyword.map(lambda x: x not in drop_list)].keyword.value_counts()
 
     words = list(zip(list(counts.index), [int(n) for n in counts]))
-    wc = pyc.WordCloud(
-        init_opts=opts.InitOpts(theme=glbs.ThemeType.DARK, width='100%', height='360px', bg_color='#1a1c1d')
-    ).add(
-        '', words, word_size_range=(8, 88), shape=glbs.SymbolType.DIAMOND
-    )
-    render(wc, show=True, changeHost=True)
+    print(words)
+    # wc = pyc.WordCloud(
+    #     init_opts=opts.InitOpts(theme=glbs.ThemeType.DARK, width='100%', height='360px', bg_color='#1a1c1d')
+    # ).add(
+    #     '', words, word_size_range=(8, 88), shape=glbs.SymbolType.DIAMOND
+    # )
+    # render(wc, show=True, changeHost=True)
 
 
 if __name__ == '__main__':
