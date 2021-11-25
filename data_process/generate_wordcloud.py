@@ -33,7 +33,7 @@ def generate_wordcloudlist():
             segments.append({'keyword': word, 'brand': row.title})
 
     result = pd.DataFrame(segments)
-    result.to_csv('keywords3.csv')
+    result.to_csv('keywords.csv', index_label='num')
 
     # seg_df = pd.DataFrame(segments)
     # word_df = seg_df.groupby('word')['count'].sum()
