@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 
 
 keyword = pd.read_csv('keywords.csv')
-engine = create_engine('mysql+pymysql://user:password@host:3306/milktea')
+engine = create_engine('mysql+pymysql://root:password@host:3306/milktea')
 
 
 def csv_to_sql():
